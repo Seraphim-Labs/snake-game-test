@@ -1,13 +1,126 @@
 * { box-sizing: border-box; }
+
+/* --- Theme tokens (page chrome) ---
+   Canvas colors are handled in game.js via the THEMES object so they
+   stay in sync with the renderer. These variables only style the
+   surrounding HTML chrome (bg, text, chips, title gradient). */
+:root {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #1e293b 0%, #0f172a 60%, #020617 100%);
+  --fg: #e2e8f0;
+  --muted: #94a3b8;
+  --dim: #64748b;
+  --chip-bg: #1e293b;
+  --chip-bg-hover: #273449;
+  --chip-border: #334155;
+  --chip-on-bg: #14532d;
+  --chip-on-border: #22c55e;
+  --chip-on-fg: #bbf7d0;
+  --kbd-bg: #334155;
+  --canvas-border: #334155;
+  --canvas-shadow: 0 20px 60px -20px rgba(34,197,94,0.25);
+  --title-grad: linear-gradient(90deg, #22c55e, #86efac, #fde047);
+  --title-glow: drop-shadow(0 2px 12px rgba(34,197,94,0.25));
+}
+
+body[data-theme="neon"] {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #2a0e4a 0%, #0b0320 60%, #05010f 100%);
+  --fg: #f5e9ff;
+  --muted: #c0a8e0;
+  --dim: #8a78a8;
+  --chip-bg: #1a0a33;
+  --chip-bg-hover: #2a1152;
+  --chip-border: #5b21b6;
+  --chip-on-bg: #4c1d95;
+  --chip-on-border: #ec4899;
+  --chip-on-fg: #fbcfe8;
+  --kbd-bg: #3b1a6b;
+  --canvas-border: #7c3aed;
+  --canvas-shadow: 0 20px 70px -20px rgba(236,72,153,0.55);
+  --title-grad: linear-gradient(90deg, #ec4899, #a855f7, #22d3ee);
+  --title-glow: drop-shadow(0 2px 16px rgba(168,85,247,0.55));
+}
+
+body[data-theme="retro"] {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #4a3a1f 0%, #1f1609 60%, #0d0905 100%);
+  --fg: #f5e6c4;
+  --muted: #c9b07f;
+  --dim: #8a7552;
+  --chip-bg: #2a1f0e;
+  --chip-bg-hover: #3d2e15;
+  --chip-border: #7a5a2a;
+  --chip-on-bg: #5a3a12;
+  --chip-on-border: #f5b041;
+  --chip-on-fg: #fde7b0;
+  --kbd-bg: #4a3a1f;
+  --canvas-border: #a37a35;
+  --canvas-shadow: 0 20px 60px -20px rgba(245,176,65,0.35);
+  --title-grad: linear-gradient(90deg, #f5b041, #e67e22, #c0392b);
+  --title-glow: drop-shadow(0 2px 12px rgba(245,176,65,0.3));
+}
+
+body[data-theme="forest"] {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #1a3a2a 0%, #0a1f14 60%, #030a06 100%);
+  --fg: #dff3e4;
+  --muted: #9ac0a7;
+  --dim: #5f8572;
+  --chip-bg: #0f2a1c;
+  --chip-bg-hover: #16402a;
+  --chip-border: #2e6b46;
+  --chip-on-bg: #1f4d32;
+  --chip-on-border: #84cc16;
+  --chip-on-fg: #d9f99d;
+  --kbd-bg: #1f4d32;
+  --canvas-border: #3b7a52;
+  --canvas-shadow: 0 20px 60px -20px rgba(132,204,22,0.3);
+  --title-grad: linear-gradient(90deg, #84cc16, #22c55e, #facc15);
+  --title-glow: drop-shadow(0 2px 12px rgba(132,204,22,0.3));
+}
+
+body[data-theme="candy"] {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #ffd6e7 0%, #ffe9f3 60%, #fff5fa 100%);
+  --fg: #4a1d3a;
+  --muted: #8a4a6f;
+  --dim: #b07090;
+  --chip-bg: #fff0f6;
+  --chip-bg-hover: #ffe0ec;
+  --chip-border: #f9a8d4;
+  --chip-on-bg: #fbcfe8;
+  --chip-on-border: #ec4899;
+  --chip-on-fg: #831843;
+  --kbd-bg: #fbcfe8;
+  --canvas-border: #f472b6;
+  --canvas-shadow: 0 20px 60px -20px rgba(236,72,153,0.35);
+  --title-grad: linear-gradient(90deg, #ec4899, #f472b6, #a855f7);
+  --title-glow: drop-shadow(0 2px 12px rgba(236,72,153,0.3));
+}
+
+body[data-theme="mono"] {
+  --bg: radial-gradient(1000px 600px at 50% -20%, #2a2a2a 0%, #141414 60%, #050505 100%);
+  --fg: #ededed;
+  --muted: #a3a3a3;
+  --dim: #737373;
+  --chip-bg: #1a1a1a;
+  --chip-bg-hover: #262626;
+  --chip-border: #404040;
+  --chip-on-bg: #262626;
+  --chip-on-border: #e5e5e5;
+  --chip-on-fg: #fafafa;
+  --kbd-bg: #2e2e2e;
+  --canvas-border: #3f3f3f;
+  --canvas-shadow: 0 20px 60px -20px rgba(255,255,255,0.15);
+  --title-grad: linear-gradient(90deg, #ffffff, #a3a3a3, #525252);
+  --title-glow: drop-shadow(0 2px 12px rgba(255,255,255,0.15));
+}
+
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background:
-    radial-gradient(1000px 600px at 50% -20%, #1e293b 0%, #0f172a 60%, #020617 100%);
-  color: #e2e8f0;
+  background: var(--bg);
+  color: var(--fg);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 .wrap {
   max-width: 480px;
@@ -19,11 +132,11 @@ h1 {
   margin: 0 0 16px;
   font-size: 2rem;
   letter-spacing: 0.02em;
-  background: linear-gradient(90deg, #22c55e, #86efac, #fde047);
+  background: var(--title-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 12px rgba(34,197,94,0.25));
+  filter: var(--title-glow);
 }
 .hud {
   display: flex;
@@ -32,9 +145,9 @@ h1 {
   margin: 0 auto 12px;
   max-width: 420px;
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--muted);
 }
-.hud b { color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.hud b { color: var(--fg); font-variant-numeric: tabular-nums; }
 
 .canvas-wrap {
   position: relative;
@@ -53,48 +166,77 @@ h1 {
 
 canvas {
   background: #0b1222;
-  border: 2px solid #334155;
+  border: 2px solid var(--canvas-border);
   border-radius: 12px;
   display: block;
   width: 100%;
   height: auto;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.03) inset,
-    0 20px 60px -20px rgba(34,197,94,0.25);
+    var(--canvas-shadow);
   touch-action: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
   margin: 14px auto 0;
 }
 .chip {
-  background: #1e293b;
-  color: #e2e8f0;
-  border: 1px solid #334155;
+  background: var(--chip-bg);
+  color: var(--fg);
+  border: 1px solid var(--chip-border);
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, border-color 0.15s;
 }
-.chip:hover { background: #273449; }
+.chip:hover { background: var(--chip-bg-hover); }
 .chip:active { transform: translateY(1px); }
-.chip[aria-pressed="true"] { background: #14532d; border-color: #22c55e; color: #bbf7d0; }
+.chip[aria-pressed="true"] {
+  background: var(--chip-on-bg);
+  border-color: var(--chip-on-border);
+  color: var(--chip-on-fg);
+}
+
+.chip-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 14px;
+  color: var(--muted);
+}
+.chip-select select {
+  background: transparent;
+  color: var(--fg);
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.chip-select select option {
+  /* options render in the OS popup — force readable colors */
+  background: #1e293b;
+  color: #e2e8f0;
+}
 
 .hint {
   margin-top: 16px;
-  color: #64748b;
+  color: var(--dim);
   font-size: 0.85rem;
   line-height: 1.7;
 }
 kbd {
-  background: #334155;
+  background: var(--kbd-bg);
   border-radius: 4px;
   padding: 1px 6px;
   font-family: ui-monospace, monospace;
   font-size: 0.85em;
-  color: #e2e8f0;
+  color: var(--fg);
 }
