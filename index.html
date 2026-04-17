@@ -8,31 +8,38 @@
 </head>
 <body data-theme="midnight">
   <div class="wrap">
-    <h1>🐍 Snake</h1>
+    <h1><span aria-hidden="true">🐍</span> <span id="titleText" data-i18n="title">Snake</span></h1>
     <div class="hud">
-      <span>Score: <b id="score">0</b></span>
-      <span>Speed: <b id="speed">1.0x</b></span>
-      <span>Best: <b id="best">0</b></span>
+      <span><span data-i18n="score">Score</span>: <b id="score">0</b></span>
+      <span><span data-i18n="speed">Speed</span>: <b id="speed">1.0x</b></span>
+      <span><span data-i18n="best">Best</span>: <b id="best">0</b></span>
     </div>
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="game" width="420" height="420"></canvas>
     </div>
     <div class="controls">
       <label class="chip chip-select">
-        Theme:
+        <span data-i18n="theme">Theme</span>:
         <select id="themeSelect" aria-label="Theme">
-          <option value="midnight">Midnight</option>
-          <option value="neon">Neon</option>
-          <option value="retro">Retro</option>
-          <option value="forest">Forest</option>
-          <option value="candy">Candy</option>
-          <option value="mono">Mono</option>
+          <option value="midnight" data-i18n="theme_midnight">Midnight</option>
+          <option value="neon" data-i18n="theme_neon">Neon</option>
+          <option value="retro" data-i18n="theme_retro">Retro</option>
+          <option value="forest" data-i18n="theme_forest">Forest</option>
+          <option value="candy" data-i18n="theme_candy">Candy</option>
+          <option value="mono" data-i18n="theme_mono">Mono</option>
+        </select>
+      </label>
+      <label class="chip chip-select">
+        <span data-i18n="language">Language</span>:
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
         </select>
       </label>
       <button id="wrapToggle" class="chip" aria-pressed="false">Walls: ON</button>
-      <button id="restartBtn" class="chip">Restart (R)</button>
+      <button id="restartBtn" class="chip" data-i18n="restart">Restart (R)</button>
     </div>
-    <p class="hint">
+    <p class="hint" id="hint">
       <kbd>↑↓←→</kbd> / <kbd>WASD</kbd> · <kbd>Space</kbd> pause · <kbd>R</kbd> restart · <kbd>T</kbd> wrap · <kbd>Y</kbd> theme · swipe on mobile
     </p>
   </div>
