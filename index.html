@@ -6,7 +6,7 @@
   <title>Snake ✨</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-theme="midnight">
   <div class="wrap">
     <h1>🐍 Snake</h1>
     <div class="hud">
@@ -18,11 +18,22 @@
       <canvas id="game" width="420" height="420"></canvas>
     </div>
     <div class="controls">
+      <label class="chip chip-select">
+        Theme:
+        <select id="themeSelect" aria-label="Theme">
+          <option value="midnight">Midnight</option>
+          <option value="neon">Neon</option>
+          <option value="retro">Retro</option>
+          <option value="forest">Forest</option>
+          <option value="candy">Candy</option>
+          <option value="mono">Mono</option>
+        </select>
+      </label>
       <button id="wrapToggle" class="chip" aria-pressed="false">Walls: ON</button>
       <button id="restartBtn" class="chip">Restart (R)</button>
     </div>
     <p class="hint">
-      <kbd>↑↓←→</kbd> / <kbd>WASD</kbd> · <kbd>Space</kbd> pause · <kbd>R</kbd> restart · <kbd>T</kbd> wrap · swipe on mobile
+      <kbd>↑↓←→</kbd> / <kbd>WASD</kbd> · <kbd>Space</kbd> pause · <kbd>R</kbd> restart · <kbd>T</kbd> wrap · <kbd>Y</kbd> theme · swipe on mobile
     </p>
   </div>
   <script src="game.js"></script>
