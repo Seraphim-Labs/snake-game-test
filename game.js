@@ -8,6 +8,8 @@
   const restartBtn = document.getElementById('restartBtn');
   const canvasWrap = document.getElementById('canvasWrap');
   const themeSelect = document.getElementById('themeSelect');
+  const langSelect = document.getElementById('langSelect');
+  const hintEl = document.getElementById('hint');
 
   // --- config ---
   const GRID = 21;                     // cells per side (odd so snake starts centered)
@@ -18,6 +20,68 @@
   const GOLDEN_POINTS = 5;
   const GOLDEN_TTL_MS = 6000;          // how long a golden apple sticks around
   const GOLDEN_CHANCE_ON_EAT = 0.22;   // chance to spawn a golden after eating normal
+
+  // --- i18n ---
+  const STRINGS = {
+    en: {
+      title:          'Snake',
+      score:          'Score',
+      speed:          'Speed',
+      best:           'Best',
+      theme:          'Theme',
+      language:       'Language',
+      restart:        'Restart (R)',
+      walls_on:       'Walls: ON',
+      walls_off:      'Walls: OFF (wrap)',
+      game_over:      'Game Over',
+      game_over_sub:  'Press R to restart',
+      paused:         'Paused',
+      paused_sub:     'Press Space to resume',
+      theme_midnight: 'Midnight',
+      theme_neon:     'Neon',
+      theme_retro:    'Retro',
+      theme_forest:   'Forest',
+      theme_candy:    'Candy',
+      theme_mono:     'Mono',
+      hint_html:
+        '<kbd>↑↓←→</kbd> / <kbd>WASD</kbd> · <kbd>Space</kbd> pause · ' +
+        '<kbd>R</kbd> restart · <kbd>T</kbd> wrap · <kbd>Y</kbd> theme · swipe on mobile',
+    },
+    ja: {
+      title:          'スネーク',
+      score:          'スコア',
+      speed:          'スピード',
+      best:           'ベスト',
+      theme:          'テーマ',
+      language:       '言語',
+      restart:        'リスタート (R)',
+      walls_on:       '壁: あり',
+      walls_off:      '壁: なし (ワープ)',
+      game_over:      'ゲームオーバー',
+      game_over_sub:  'R キーでリスタート',
+      paused:         '一時停止',
+      paused_sub:     'スペースキーで再開',
+      theme_midnight: 'ミッドナイト',
+      theme_neon:     'ネオン',
+      theme_retro:    'レトロ',
+      theme_forest:   'フォレスト',
+      theme_candy:    'キャンディ',
+      theme_mono:     'モノ',
+      hint_html:
+        '<kbd>↑↓←→</kbd> / <kbd>WASD</kbd> · <kbd>スペース</kbd> 一時停止 · ' +
+        '<kbd>R</kbd> リスタート · <kbd>T</kbd> 壁切替 · <kbd>Y</kbd> テーマ · モバイルはスワイプ',
+    },
+  };
+  const LANG_ORDER = Object.keys(STRINGS);
+  let lang = localStorage.getItem('snake_lang');
+  if (!STRINGS[lang]) {
+    // best-effort: auto-pick Japanese if the browser prefers it
+    const nav = (navigator.language || '').toLowerCase();
+    lang = nav.startsWith('ja') ? 'ja' : 'en';
+  }
+  function t(key) {
+    return (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
+  }
 
   // --- themes ---
   // snakeHead / snakeTail are rgb triples — body is lerped between them.
@@ -142,6 +206,7 @@
   if (!THEMES[themeName]) themeName = 'midnight';
   theme = THEMES[themeName];
   bestEl.textContent = best;
+  applyLanguage(lang, { skipStore: true });
   updateWrapButton();
   applyTheme(themeName, { skipStore: true });
 
@@ -370,10 +435,10 @@
     const [hr, hg, hb] = theme.snakeHead;
     const [tr, tg, tb] = theme.snakeTail;
     snake.forEach((s, i) => {
-      const t = i / Math.max(1, snake.length - 1);
-      const r = Math.round(hr + (tr - hr) * t);
-      const g = Math.round(hg + (tg - hg) * t);
-      const b = Math.round(hb + (tb - hb) * t);
+      const tt = i / Math.max(1, snake.length - 1);
+      const r = Math.round(hr + (tr - hr) * tt);
+      const g = Math.round(hg + (tg - hg) * tt);
+      const b = Math.round(hb + (tb - hb) * tt);
       const color = `rgb(${r},${g},${b})`;
       drawCell(s, color, 1, i === 0);
       if (i === 0) {
@@ -412,8 +477,8 @@
     ctx.globalAlpha = 1;
 
     // overlays
-    if (!alive) overlay('Game Over', 'Press R to restart');
-    else if (paused) overlay('Paused', 'Press Space to resume');
+    if (!alive) overlay(t('game_over'), t('game_over_sub'));
+    else if (paused) overlay(t('paused'), t('paused_sub'));
   }
 
   function drawCell(cell, color, scale = 1, rounded = false) {
@@ -443,10 +508,10 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = theme.overlayTitle;
-    ctx.font = 'bold 28px system-ui, sans-serif';
+    ctx.font = 'bold 28px system-ui, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif';
     ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 12);
     ctx.fillStyle = theme.overlaySub;
-    ctx.font = '14px system-ui, sans-serif';
+    ctx.font = '14px system-ui, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif';
     ctx.fillText(sub, canvas.width / 2, canvas.height / 2 + 16);
   }
 
@@ -464,6 +529,28 @@
     const idx = THEME_ORDER.indexOf(themeName);
     const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
     applyTheme(next);
+  }
+
+  // --- language handling ---
+  function applyLanguage(name, opts = {}) {
+    if (!STRINGS[name]) name = 'en';
+    lang = name;
+    document.documentElement.setAttribute('lang', name);
+    // update all [data-i18n] text nodes
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (val != null) el.textContent = val;
+    });
+    // page title
+    document.title = t('title') + ' ✨';
+    // hint line has inline <kbd> markup — inject as HTML
+    if (hintEl) hintEl.innerHTML = t('hint_html');
+    // wrap button reflects state + language
+    updateWrapButton();
+    // keep selector in sync
+    if (langSelect && langSelect.value !== name) langSelect.value = name;
+    if (!opts.skipStore) localStorage.setItem('snake_lang', name);
   }
 
   // --- input ---
@@ -519,6 +606,9 @@
   if (themeSelect) {
     themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
   }
+  if (langSelect) {
+    langSelect.addEventListener('change', (e) => applyLanguage(e.target.value));
+  }
 
   function toggleWrap() {
     wrapWalls = !wrapWalls;
@@ -526,7 +616,7 @@
     updateWrapButton();
   }
   function updateWrapButton() {
-    wrapToggle.textContent = wrapWalls ? 'Walls: ON' : 'Walls: OFF (wrap)';
+    wrapToggle.textContent = wrapWalls ? t('walls_on') : t('walls_off');
     wrapToggle.setAttribute('aria-pressed', wrapWalls ? 'false' : 'true');
   }
 
