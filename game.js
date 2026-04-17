@@ -7,6 +7,7 @@
   const wrapToggle = document.getElementById('wrapToggle');
   const restartBtn = document.getElementById('restartBtn');
   const canvasWrap = document.getElementById('canvasWrap');
+  const themeSelect = document.getElementById('themeSelect');
 
   // --- config ---
   const GRID = 21;                     // cells per side (odd so snake starts centered)
@@ -18,17 +19,131 @@
   const GOLDEN_TTL_MS = 6000;          // how long a golden apple sticks around
   const GOLDEN_CHANCE_ON_EAT = 0.22;   // chance to spawn a golden after eating normal
 
+  // --- themes ---
+  // snakeHead / snakeTail are rgb triples — body is lerped between them.
+  // overlayBg should be a translucent version of the canvas bg.
+  const THEMES = {
+    midnight: {
+      canvasBg:    '#0b1222',
+      grid:        'rgba(148, 163, 184, 0.06)',
+      snakeHead:   [34, 197, 94],
+      snakeTail:   [20, 184, 166],
+      eye:         '#0b1222',
+      food:        '#ef4444',
+      foodParticle:'#22c55e',
+      golden:      '#facc15',
+      goldenParticle:'#facc15',
+      deathParticle:'#ef4444',
+      popupFood:   '#bbf7d0',
+      popupGolden: '#fde68a',
+      overlayBg:   'rgba(2, 6, 23, 0.72)',
+      overlayTitle:'#e2e8f0',
+      overlaySub:  '#94a3b8',
+    },
+    neon: {
+      canvasBg:    '#0a0420',
+      grid:        'rgba(168, 85, 247, 0.10)',
+      snakeHead:   [236, 72, 153],
+      snakeTail:   [34, 211, 238],
+      eye:         '#0a0420',
+      food:        '#f43f5e',
+      foodParticle:'#ec4899',
+      golden:      '#fde047',
+      goldenParticle:'#fde047',
+      deathParticle:'#f43f5e',
+      popupFood:   '#fbcfe8',
+      popupGolden: '#fef9c3',
+      overlayBg:   'rgba(10, 4, 32, 0.78)',
+      overlayTitle:'#f5e9ff',
+      overlaySub:  '#c0a8e0',
+    },
+    retro: {
+      canvasBg:    '#1a1208',
+      grid:        'rgba(245, 176, 65, 0.08)',
+      snakeHead:   [245, 176, 65],
+      snakeTail:   [192, 57, 43],
+      eye:         '#1a1208',
+      food:        '#e74c3c',
+      foodParticle:'#f5b041',
+      golden:      '#f1c40f',
+      goldenParticle:'#f1c40f',
+      deathParticle:'#e74c3c',
+      popupFood:   '#fde7b0',
+      popupGolden: '#fff3bf',
+      overlayBg:   'rgba(26, 18, 8, 0.78)',
+      overlayTitle:'#f5e6c4',
+      overlaySub:  '#c9b07f',
+    },
+    forest: {
+      canvasBg:    '#0a1f14',
+      grid:        'rgba(132, 204, 22, 0.08)',
+      snakeHead:   [163, 230, 53],
+      snakeTail:   [21, 128, 61],
+      eye:         '#0a1f14',
+      food:        '#dc2626',
+      foodParticle:'#84cc16',
+      golden:      '#facc15',
+      goldenParticle:'#facc15',
+      deathParticle:'#dc2626',
+      popupFood:   '#d9f99d',
+      popupGolden: '#fef08a',
+      overlayBg:   'rgba(10, 31, 20, 0.78)',
+      overlayTitle:'#dff3e4',
+      overlaySub:  '#9ac0a7',
+    },
+    candy: {
+      canvasBg:    '#fff5fa',
+      grid:        'rgba(236, 72, 153, 0.12)',
+      snakeHead:   [236, 72, 153],
+      snakeTail:   [168, 85, 247],
+      eye:         '#fff5fa',
+      food:        '#f43f5e',
+      foodParticle:'#ec4899',
+      golden:      '#f59e0b',
+      goldenParticle:'#f59e0b',
+      deathParticle:'#f43f5e',
+      popupFood:   '#831843',
+      popupGolden: '#78350f',
+      overlayBg:   'rgba(255, 245, 250, 0.82)',
+      overlayTitle:'#4a1d3a',
+      overlaySub:  '#8a4a6f',
+    },
+    mono: {
+      canvasBg:    '#0d0d0d',
+      grid:        'rgba(255, 255, 255, 0.05)',
+      snakeHead:   [245, 245, 245],
+      snakeTail:   [115, 115, 115],
+      eye:         '#0d0d0d',
+      food:        '#ffffff',
+      foodParticle:'#d4d4d4',
+      golden:      '#fafafa',
+      goldenParticle:'#fafafa',
+      deathParticle:'#ffffff',
+      popupFood:   '#fafafa',
+      popupGolden: '#ffffff',
+      overlayBg:   'rgba(13, 13, 13, 0.78)',
+      overlayTitle:'#fafafa',
+      overlaySub:  '#a3a3a3',
+    },
+  };
+  const THEME_ORDER = Object.keys(THEMES);
+
   // --- state ---
   let snake, dir, nextDir, food, goldenFood, goldenExpiresAt;
   let score, best, alive, paused, wrapWalls;
   let lastTick, accumulator;
   let particles, popups;
   let shakeUntil = 0;
+  let themeName, theme;
 
   best = Number(localStorage.getItem('snake_best') || 0);
   wrapWalls = localStorage.getItem('snake_wrap') !== '1'; // default walls ON
+  themeName = localStorage.getItem('snake_theme') || 'midnight';
+  if (!THEMES[themeName]) themeName = 'midnight';
+  theme = THEMES[themeName];
   bestEl.textContent = best;
   updateWrapButton();
+  applyTheme(themeName, { skipStore: true });
 
   function reset() {
     snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
@@ -129,15 +244,15 @@
     let ate = false;
     if (food && head.x === food.x && head.y === food.y) {
       score += 1;
-      burst(head, '#22c55e');
-      popup(head, '+1', '#bbf7d0');
+      burst(head, theme.foodParticle);
+      popup(head, '+1', theme.popupFood);
       placeFood();
       maybeSpawnGolden();
       ate = true;
     } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
       score += GOLDEN_POINTS;
-      burst(head, '#facc15', 22);
-      popup(head, '+' + GOLDEN_POINTS, '#fde68a');
+      burst(head, theme.goldenParticle, 22);
+      popup(head, '+' + GOLDEN_POINTS, theme.popupGolden);
       goldenFood = null;
       ate = true;
     }
@@ -163,7 +278,7 @@
     void canvasWrap.offsetWidth;
     canvasWrap.classList.add('shake');
     // big burst at head
-    burst(snake[0], '#ef4444', 30);
+    burst(snake[0], theme.deathParticle, 30);
   }
 
   // --- particles + popups ---
@@ -217,11 +332,11 @@
     updateParticles();
 
     // backdrop
-    ctx.fillStyle = '#0b1222';
+    ctx.fillStyle = theme.canvasBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // subtle grid
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.06)';
+    ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 1;
     for (let i = 1; i < GRID; i++) {
       ctx.beginPath();
@@ -235,29 +350,30 @@
     // food (pulsing)
     if (food) {
       const pulse = 1 + Math.sin(now / 180) * 0.08;
-      drawCell(food, '#ef4444', pulse, true);
+      drawCell(food, theme.food, pulse, true);
     }
 
     // golden food (shrinks as TTL expires)
     if (goldenFood) {
       const remain = Math.max(0, (goldenExpiresAt - now) / GOLDEN_TTL_MS);
       const pulse = 0.6 + remain * 0.5 + Math.sin(now / 90) * 0.1;
-      drawCell(goldenFood, '#facc15', pulse, true);
+      drawCell(goldenFood, theme.golden, pulse, true);
       // glow
       ctx.save();
-      ctx.shadowColor = '#facc15';
+      ctx.shadowColor = theme.golden;
       ctx.shadowBlur = 18;
-      drawCell(goldenFood, 'rgba(250,204,21,0.0)', pulse, true);
+      drawCell(goldenFood, 'rgba(0,0,0,0)', pulse, true);
       ctx.restore();
     }
 
-    // snake with gradient body
+    // snake with gradient body (head color → tail color)
+    const [hr, hg, hb] = theme.snakeHead;
+    const [tr, tg, tb] = theme.snakeTail;
     snake.forEach((s, i) => {
       const t = i / Math.max(1, snake.length - 1);
-      // head = bright green, tail = teal
-      const r = Math.round(34 + (20 - 34) * t);
-      const g = Math.round(197 + (184 - 197) * t);
-      const b = Math.round(94 + (166 - 94) * t);
+      const r = Math.round(hr + (tr - hr) * t);
+      const g = Math.round(hg + (tg - hg) * t);
+      const b = Math.round(hb + (tb - hb) * t);
       const color = `rgb(${r},${g},${b})`;
       drawCell(s, color, 1, i === 0);
       if (i === 0) {
@@ -268,7 +384,7 @@
         const oy = dir.y * CELL * 0.18;
         const px = -dir.y * CELL * 0.22;
         const py = dir.x * CELL * 0.22;
-        ctx.fillStyle = '#0b1222';
+        ctx.fillStyle = theme.eye;
         ctx.beginPath();
         ctx.arc(cx + ox + px, cy + oy + py, CELL * 0.09, 0, Math.PI * 2);
         ctx.arc(cx + ox - px, cy + oy - py, CELL * 0.09, 0, Math.PI * 2);
@@ -322,16 +438,32 @@
   }
 
   function overlay(title, sub) {
-    ctx.fillStyle = 'rgba(2, 6, 23, 0.72)';
+    ctx.fillStyle = theme.overlayBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#e2e8f0';
+    ctx.fillStyle = theme.overlayTitle;
     ctx.font = 'bold 28px system-ui, sans-serif';
     ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 12);
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = theme.overlaySub;
     ctx.font = '14px system-ui, sans-serif';
     ctx.fillText(sub, canvas.width / 2, canvas.height / 2 + 16);
+  }
+
+  // --- theme handling ---
+  function applyTheme(name, opts = {}) {
+    if (!THEMES[name]) name = 'midnight';
+    themeName = name;
+    theme = THEMES[name];
+    document.body.setAttribute('data-theme', name);
+    if (themeSelect && themeSelect.value !== name) themeSelect.value = name;
+    if (!opts.skipStore) localStorage.setItem('snake_theme', name);
+  }
+
+  function cycleTheme() {
+    const idx = THEME_ORDER.indexOf(themeName);
+    const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+    applyTheme(next);
   }
 
   // --- input ---
@@ -351,6 +483,7 @@
   window.addEventListener('keydown', (e) => {
     if (e.key === 'r' || e.key === 'R') return reset();
     if (e.key === 't' || e.key === 'T') return toggleWrap();
+    if (e.key === 'y' || e.key === 'Y') return cycleTheme();
     if (e.key === ' ') {
       e.preventDefault();
       if (alive) paused = !paused;
@@ -383,6 +516,9 @@
   // buttons
   restartBtn.addEventListener('click', reset);
   wrapToggle.addEventListener('click', toggleWrap);
+  if (themeSelect) {
+    themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+  }
 
   function toggleWrap() {
     wrapWalls = !wrapWalls;
